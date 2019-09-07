@@ -33,6 +33,8 @@ int main() {
   msgOut.len = 8;
   msgOut.format = CANStandard;
 
+  can.frequency(250000);
+
   spi.frequency(1000000);
   spi.format(9, 0);
 
