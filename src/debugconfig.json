@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceRoot}",
+            "executable": ".pio/build/genericSTM32F103C8/firmware.elf",
+            "name": "Cortex Debug A2C",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "device": "STM32F103C8",
+            "svdFile": "/Users/zain/Documents/SVDFiles/STM32F1_svd_V1.2/STM32F103.svd"
+        }
+    ]
+}

@@ -12,9 +12,10 @@
 #define CAN_MSG_PERIOD_MS 100
 
 CAN can(PA_11, PA_12);
-SPI spi(PB_15, PB_14, PB_13, PB_12); // MOSI, MISO, SCK, SS
+SPI digiPot(PB_15, PB_14, PB_13); // MOSI, MISO, SCK, SS
 
 DigitalOut led(PB_0);
+DigitalOut slaveSel(PB_12);
 
 AnalogIn an1(PA_1);
 AnalogIn an2(PA_2);
@@ -22,7 +23,7 @@ AnalogIn an2(PA_2);
 uint16_t an1Data = 0;
 uint16_t an2Data = 0;
 
-uint16_t digiPot1Config = 0b0000000000000000;
+uint16_t digiPot1Config = 0b0000000100000000;
 uint16_t digiPot2Config = 0b1000000000000000;
 
 // int main() {
@@ -54,28 +55,53 @@ uint16_t digiPot2Config = 0b1000000000000000;
 //   }
 // }
 
-CANMessage msgOut;
-float test = 0;
+//---------- CAN BUS TESTING CODE ----------
+// CANMessage msgOut;
+// float test = 0;
+// int main() {
+//   led = 1;
+//   msgOut.id = CAN_ID;
+//   msgOut.len = 8;
+//   msgOut.data[0] = 1;
+//   can.frequency(250000);
+//   wait(1);
+//   while (1) {
+//     test = an1.read();
+//     an2.read();
+//     if (can.write(msgOut)) {
+//       led = !led;
+//     }
+//     wait(.5);
+//   }
+// }
 
-int main() {
+//---------- DIGIPOT TESTING CODE ----------
 
-  led = 0;
+// int main() {
+//   slaveSel = 1;
+//   digiPot.frequency(1000000);
+//   digiPot.format(9, 0);
+//   led = 0;
 
-  msgOut.id = CAN_ID;
-  msgOut.len = 8;
-  msgOut.data[0] = 1;
-  can.frequency(250000);
+//   while (1) {
+//     slaveSel = 0;
+//     digiPot.write(0b111111111);
+//     slaveSel = 1;
+//     wait(1);
 
-  wait(1);
+//     slaveSel = 0;
+//     digiPot.write(0b100001111);
+//     slaveSel = 1;
+//     wait(1);
 
-  while (1) {
+//     slaveSel = 0;
+//     digiPot.write(0b011111111);
+//     slaveSel = 1;
+//     wait(1);
 
-    test = an1.read();
-    an2.read();
-
-    if (can.write(msgOut)) {
-      led = !led;
-    }
-    wait(.5);
-  }
-}
+//     slaveSel = 0;
+//     digiPot.write(0b000001111);
+//     slaveSel = 1;
+//     wait(1);
+//   }
+// }
