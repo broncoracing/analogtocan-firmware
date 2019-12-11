@@ -23,8 +23,10 @@ AnalogIn an2(PA_2);
 uint16_t an1Data = 0;
 uint16_t an2Data = 0;
 
-uint16_t digiPot1Config = 0b0000000100000000;
-uint16_t digiPot2Config = 0b1000000000000000;
+// These values must be 9 bits
+// [ID of POT (1 bit)] [resistance value (8 bits)]
+uint16_t digiPot1Config = 0b011111111;
+uint16_t digiPot2Config = 0b111111111;
 
 // int main() {
 
