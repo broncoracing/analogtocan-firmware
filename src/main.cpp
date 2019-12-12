@@ -2,8 +2,8 @@
   Analog to CAN board firmware
 
   CAN data frame Layout:
-  Bytes 0 - 3 uint16 encoded an1 Data
-  Bytes 4 - 7 uint16 encoded an2 Data
+  Bytes 0 - 1 uint16 encoded an1 Data
+  Bytes 2 - 3 uint16 encoded an2 Data
 */
 
 #include <mbed.h>
