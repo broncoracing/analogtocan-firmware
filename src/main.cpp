@@ -10,7 +10,8 @@
 #include <mbed.h>
 
 #define CAN_ID 101
-#define CAN_MSG_PERIOD_MS 100
+
+#define CAN_MSG_PERIOD_MS 10
 #define CAN_BAUD 250000
 
 #define SPI_FREQ 1000000
