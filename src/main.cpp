@@ -1,109 +1,89 @@
-/*
-  Analog to CAN board firmware
-
-  CAN data frame Layout:
-  Bytes 0 - 1 uint16 encoded an1 Data
-  Bytes 2 - 3 uint16 encoded an2 Data
+/**
+ *  @brief Analog to CAN board firmware
+ *
+ *  CAN data frame Layout:
+ *  Bytes 0 - 1 uint16 encoded an0 Data
+ *  Bytes 2 - 3 uint16 encoded an1 Data
+ *  CAN Packet size: 4 bytes
 */
 
 #include <mbed.h>
 
 #define CAN_ID 101
 #define CAN_MSG_PERIOD_MS 100
+#define CAN_BAUD 250000
 
+#define SPI_FREQ 1000000
+
+// ---------- Set up IOs ---------- //
 CAN can(PA_11, PA_12);
 SPI digiPot(PB_15, PB_14, PB_13); // MOSI, MISO, SCK, SS
 
 DigitalOut led(PB_0);
 DigitalOut slaveSel(PB_12);
 
-AnalogIn an1(PA_1);
-AnalogIn an2(PA_2);
+AnalogIn an0(PA_1);
+AnalogIn an1(PA_2);
 
+// ---------- Globals ---------- //
+uint16_t an0Data = 0;
 uint16_t an1Data = 0;
-uint16_t an2Data = 0;
+
+CANMessage msgOut;
+Timer timer;
 
 // These values must be 9 bits
 // [ID of POT (1 bit)] [resistance value (8 bits)]
-uint16_t digiPot1Config = 0b011111111;
-uint16_t digiPot2Config = 0b111111111;
+uint16_t digiPot0Config = (uint16_t)0b011111111;
+uint16_t digiPot1Config = (uint16_t)0b111111111;
 
-// int main() {
+// ---------- Prototypes ---------- //
+void writeSensorData();
 
-//   msgOut.id = CAN_ID;
-//   msgOut.len = 8;
-//   msgOut.format = CANStandard;
+int main() {
 
-//   can.frequency(250000);
+  // use 11 bit CAN ID, with a packet size of 4 bytes and set ID.
+  msgOut.format = CANStandard;
+  msgOut.len = 4;
+  msgOut.id = CAN_ID;
 
-//   spi.frequency(1000000);
-//   spi.format(9, 0);
+  can.frequency(CAN_BAUD);
 
-//   spi.write(digiPot1Config);
-//   spi.write(digiPot2Config);
+  // 9 bit frames, SPI mode 0
+  digiPot.format(9, 0);
+  digiPot.frequency(SPI_FREQ);
 
-//   while (1) {
+  // perform one time setup of digipot
+  digiPot.write(digiPot0Config);
+  digiPot.write(digiPot1Config);
 
-//     an1Data = an1.read_u16();
-//     an2Data = an2.read_u16();
+  // setup timer for periodic CAN frame
+  timer.reset();
+  timer.start();
 
-//     memcpy(&an1Data, &msgOut.data[0], 4);
-//     memcpy(&an2Data, &msgOut.data[4], 4);
+  // superloop
+  while (1) {
+    if (timer.read_ms() >= CAN_MSG_PERIOD_MS) {
+      writeSensorData();
 
-//     if (can.write(msgOut)) {
-//       led = !led;
-//     }
-//     wait_ms(CAN_MSG_PERIOD_MS);
-//   }
-// }
+      timer.reset();
+      timer.start();
+    }
+  }
+}
 
-//---------- CAN BUS TESTING CODE ----------
-// CANMessage msgOut;
-// float test = 0;
-// int main() {
-//   led = 1;
-//   msgOut.id = CAN_ID;
-//   msgOut.len = 8;
-//   msgOut.data[0] = 1;
-//   can.frequency(250000);
-//   wait(1);
-//   while (1) {
-//     test = an1.read();
-//     an2.read();
-//     if (can.write(msgOut)) {
-//       led = !led;
-//     }
-//     wait(.5);
-//   }
-// }
+/// @brief Read both channels and send CAN frame
+void writeSensorData() {
+  // read ADC
+  an0Data = an0.read_u16();
+  an1Data = an1.read_u16();
 
-//---------- DIGIPOT TESTING CODE ----------
+  // build 4 byte packet
+  memcpy(&an0Data, &msgOut.data[0], 2);
+  memcpy(&an1Data, &msgOut.data[2], 2);
 
-// int main() {
-//   slaveSel = 1;
-//   digiPot.frequency(1000000);
-//   digiPot.format(9, 0);
-//   led = 0;
-
-//   while (1) {
-//     slaveSel = 0;
-//     digiPot.write(0b111111111);
-//     slaveSel = 1;
-//     wait(1);
-
-//     slaveSel = 0;
-//     digiPot.write(0b100001111);
-//     slaveSel = 1;
-//     wait(1);
-
-//     slaveSel = 0;
-//     digiPot.write(0b011111111);
-//     slaveSel = 1;
-//     wait(1);
-
-//     slaveSel = 0;
-//     digiPot.write(0b000001111);
-//     slaveSel = 1;
-//     wait(1);
-//   }
-// }
+  // send message, upon success flip led state
+  if (can.write(msgOut)) {
+    led = !led;
+  }
+}
